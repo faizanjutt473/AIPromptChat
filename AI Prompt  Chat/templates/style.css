@@ -1,0 +1,147 @@
+/* Genel Stil */
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: url('https://source.unsplash.com/1920x1080/?technology,ai') no-repeat center center/cover;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Arkaplanı hafif bulanık yap */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
+    z-index: -1;
+}
+
+/* Chat Kutusu */
+.chat-container {
+    width: 420px;
+    background: rgba(42, 42, 42, 0.9);
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Başlık */
+.chat-header {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px;
+    background: linear-gradient(90deg, #007bff, #00d4ff);
+    border-radius: 8px;
+    color: red;
+    width: 100%;
+}
+
+/* Mesaj Alanı */
+.chat-box {
+    height: 300px;
+    width: 100%;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Mesaj Baloncukları */
+.message {
+    padding: 12px;
+    border-radius: 15px;
+    max-width: 75%;
+    font-size: 14px;
+    line-height: 1.4;
+    display: inline-block;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Kullanıcı Mesajı (Sağda, Mavi Baloncuk) */
+.user-message {
+    background: #007bff;
+    color: white;
+    align-self: flex-end;
+    text-align: left;
+    border-bottom-right-radius: 3px;
+}
+
+/* AI Mesajı (Solda, Gri Baloncuk) */
+.ai-message {
+    background: #3a3a3a;
+    color: #f0f0f0;
+    align-self: flex-start;
+    text-align: left;
+    border-bottom-left-radius: 3px;
+}
+
+/* Giriş Alanı */
+.input-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin-top: 10px;
+    gap: 5px;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: #333;
+    color: white;
+    font-size: 14px;
+}
+
+input::placeholder {
+    color: #aaa;
+}
+
+button {
+    padding: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+/* Yükleniyor Efekti */
+.loading {
+    display: inline-block;
+    font-size: 14px;
+    animation: dots 1.5s infinite;
+}
+
+.loading span {
+    animation: blink 1.5s infinite;
+}
+
+.loading span:nth-child(1) { animation-delay: 0s; }
+.loading span:nth-child(2) { animation-delay: 0.3s; }
+.loading span:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes blink {
+    0% { opacity: 0.3; }
+    50% { opacity: 1; }
+    100% { opacity: 0.3; }
+}

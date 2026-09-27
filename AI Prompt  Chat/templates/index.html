@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --container-bg: #ffffff;
+            --chat-bg: #fafafa;
+            --text-color: #333;
+            --user-msg-bg: #007bff;
+            --ai-msg-bg: #e0e0e0;
+            --border-color: #ddd;
+            --sidebar-bg: #e3e3e3;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --chat-bg: #2a2a2a;
+            --text-color: #ffffff;
+            --user-msg-bg: #4a90e2;
+            --ai-msg-bg: #3a3a3a;
+            --border-color: #444;
+            --sidebar-bg: #1a1a1a;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            transition: background 0.3s ease;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--sidebar-bg);
+            padding: 20px;
+            border-right: 2px solid var(--border-color);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-container {
+            flex: 1;
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .theme-toggle, .save-btn, .stop-btn {
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            border-radius: 8px;
+            background: var(--chat-bg);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .user-message {
+            background: var(--user-msg-bg);
+            color: white;
+            align-self: flex-end;
+            justify-content: flex-end;
+            margin-left: auto;
+            margin-right: 0;
+        }
+
+        .ai-message {
+            background: var(--ai-msg-bg);
+            color: var(--text-color);
+            align-self: flex-start;
+            margin-right: auto;
+            margin-left: 0;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--chat-bg);
+            color: var(--text-color);
+        }
+
+        button {
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .save-btn {
+            font-size: 14px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .conversation-item {
+            padding: 10px;
+            background: var(--container-bg);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .conversation-item:hover {
+            background: var(--chat-bg);
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h3>Saved Chats</h3>
+        <div id="conversationList"></div>
+    </div>
+
+    <div class="chat-container">
+        <div class="header">
+            <h3>AI Chat</h3>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+            <button class="stop-btn" onclick="stopGeneration()">⏹️ Stop</button>
+        </div>
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="Type a message..." onkeydown="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()">Send</button>
+            <button class="save-btn" onclick="saveConversation()">💾 Save</button>
+        </div>
+    </div>
+
+    <script>
+    let stopRequested = false;
+
+    // Sayfa yüklendiğinde kaydedilen sohbetleri yükle
+    window.onload = function() {
+        loadChats();
+        loadTheme();
+    };
+
+    function loadTheme() {
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") {
+            document.body.classList.add("dark-mode");
+            document.querySelector(".theme-toggle").textContent = "☀️";
+        }
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle("dark-mode");
+        let themeIcon = document.querySelector(".theme-toggle");
+        if (document.body.classList.contains("dark-mode")) {
+            themeIcon.textContent = "☀️";
+            localStorage.setItem("theme", "dark");
+        } else {
+            themeIcon.textContent = "🌙";
+            localStorage.setItem("theme", "light");
+        }
+    }
+
+    async function sendMessage() {
+        const userInput = document.getElementById("userInput").value;
+        const chatBox = document.getElementById("chatBox");
+
+        if (!userInput.trim()) return;
+
+        chatBox.innerHTML += `<div class="message user-message">${userInput}</div>`;
+
+        const loadingMessage = document.createElement("div");
+        loadingMessage.classList.add("message", "ai-message");
+        loadingMessage.innerHTML = `Thinking...`;
+        chatBox.appendChild(loadingMessage);
+
+        document.getElementById("userInput").value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        stopRequested = false;
+
+        try {
+            const response = await fetch("/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: userInput })
+            });
+
+            const data = await response.json();
+            loadingMessage.innerHTML = `<div class="ai-message">${data.response}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } catch (error) {
+            loadingMessage.innerHTML = `<div class="ai-message">⚠️ Error: ${error.message}</div>`;
+        }
+    }
+
+    function saveConversation() {
+        const chatBox = document.getElementById("chatBox");
+        const conversationList = document.getElementById("conversationList");
+
+        if (chatBox.innerHTML.trim() === "") return;
+
+        const conversationHTML = chatBox.innerHTML;
+        const chatTitle = prompt("Enter a name for the conversation:");
+
+        if (chatTitle) {
+            // Save chat in localStorage
+            let savedChats = JSON.parse(localStorage.getItem("savedChats")) || [];
+            savedChats.push({ title: chatTitle, content: conversationHTML });
+            localStorage.setItem("savedChats", JSON.stringify(savedChats));
+
+            const convoItem = document.createElement("div");
+            convoItem.classList.add("conversation-item");
+            convoItem.textContent = chatTitle;
+            convoItem.onclick = function() {
+                chatBox.innerHTML = conversationHTML;
+            };
+
+            conversationList.appendChild(convoItem);
+        }
+    }
+
+    // Load saved chats from localStorage
+    function loadChats() {
+        const conversationList = document.getElementById("conversationList");
+        const savedChats = JSON.parse(localStorage.getItem("savedChats")) || [];
+
+        savedChats.forEach(chat => {
+            const convoItem = document.createElement("div");
+            convoItem.classList.add("conversation-item");
+            convoItem.textContent = chat.title;
+            convoItem.onclick = function() {
+                document.getElementById("chatBox").innerHTML = chat.content;
+            };
+            conversationList.appendChild(convoItem);
+        });
+    }
+
+    async function stopGeneration() {
+        try {
+            const response = await fetch("/stop", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+            });
+
+            const data = await response.json();
+            console.log(data.status);
+
+            const chatBox = document.getElementById("chatBox");
+            chatBox.innerHTML += `<div class="message ai-message">⚠️ Response generation stopped by user.</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        } catch (error) {
+            console.error("Error stopping generation:", error);
+        }
+    }
+</script>
+
+</body>
+</html>
